@@ -1,0 +1,26 @@
+{% extends 'main/base.html' %}
+
+{% block title %}Add Class{% endblock %}
+
+{% block body %}
+    <!-- Put whatever you want in here for body -->
+    <div class="col-sm-12">
+        <form role="form" id="reg_form" action="{% url 'main:home' %}" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <!--what does the student need to -->
+            
+            <div class="form-group">
+                <label for="title">Title:</label>
+                <input required type="text" class="form-control" name="title" id="title" placeholder="Title">
+                <label for="Description">Title:</label>
+                <input required type="text" class="form-control" name="description" id="description" placeholder="Description">
+                <label for="code">Code:</label>
+                <input required type="text" class="form-control" name="code" id="code" placeholder="code">
+            </div>
+          
+          <br>
+          <br>
+          <button type="submit" class="btn btn-primary">Sumbit</button>
+        </form>
+    </div>
+{% endblock %}

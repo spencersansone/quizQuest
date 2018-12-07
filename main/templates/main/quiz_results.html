@@ -1,0 +1,100 @@
+{% extends 'main/base.html' %} 
+
+{% block title %}Quiz Quest{% endblock %} 
+
+{% block css %}
+  
+{% endblock %}
+
+{% block body %}
+<div class="col-sm-12" style="text-align:center;">
+  <h1>{{certain_quiz_entry.certain_quiz.name}}</h1>
+  <br>
+  <h4>Attempt #{{attempt_num}}</h4>
+  <h4>Grade : {{grade}}%</h4>
+  <br>
+</div>
+
+<div class="col-sm-12">
+  {% for entry in question_entries %}
+  <div class="card" style="width:100%;text-align:center;">
+      <div class="card-body">
+        <h5 class="card-title">Question #{{entry.selected_answer.question.index}}</h5>
+        
+        <!--??-->
+        <!--<h6 class="card-subtitle mb-2 text-muted">{{entry.selected_answer.question}}</h6>-->
+        
+        <!--content of question-->
+        <p class="card-text">{{entry.selected_answer.question.question_text}}</p>
+        <div class="btn-group-vertical btn-group-toggle" data-toggle="buttons">
+          <!--we need to display the answers here, 
+          somehow showing the correct and incorrect answers-->
+          
+          
+          {% if entry.selected_answer.correct %}
+          <!--if correct, just show it in green-->
+          <label class="btn btn-success">
+            <input type="radio" autocomplete="off"> {{entry.selected_answer.answer}}
+          </label>
+          {% else %}
+          <!--if it's not correct-->
+          <label class="btn btn-danger">
+            <input type="radio" autocomplete="off"> {{entry.selected_answer.answer}}
+          </label>
+          
+          <label class="btn btn-success">
+            <input type="radio" autocomplete="off"> {{entry.correct_answer.answer}}
+          </label>
+          {% endif %}
+          
+          {% for answer in question_data.1 %}
+          <label class="btn btn-primary">
+            <input type="radio" name="{{question_data.0.index}}_{{answer.pk}}" autocomplete="off"> {{answer.answer}}
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  
+  {% endfor %}
+  <a class="btn btn-primary" href="{% url 'main:quiz'  pk=certain_quiz_entry.certain_quiz.pk %}" role="button">Try Again</a>
+  <a class="btn btn-primary" href="{% url 'main:leaderboard'  pk=certain_quiz_entry.certain_quiz.pk %}" role="button">View Leaderboard</a>
+  <a class="btn btn-secondary" href="{% url 'main:class_detail' code=certain_quiz_entry.certain_quiz.Class.code %}" role="button">Back to Class</a>
+</div>
+
+
+<!--<div class="col-sm-12" id="q_{{question_data.0.index}}">-->
+<!--  <form role="form" id="form" action="" method="post" enctype="multipart/form-data">-->
+<!--  {% csrf_token %}-->
+<!--  {% for question_data in questions_data %}-->
+<!--    <div class="card" style="width:100%;text-align:center;">-->
+<!--      <div class="card-body">-->
+<!--        <h5 class="card-title">Question #{{question_data.0.index}}</h5>-->
+        <!--<h6 class="card-subtitle mb-2 text-muted">{{question.question}}</h6>-->
+<!--        <p class="card-text">{{question_data.0.question_text}}</p>-->
+<!--        <div class="btn-group-vertical btn-group-toggle" data-toggle="buttons">-->
+<!--          {% for answer in question_data.1 %}-->
+<!--          <label class="btn btn-primary">-->
+<!--            <input type="radio" name="{{question_data.0.index}}_{{answer.pk}}" autocomplete="off"> {{answer.answer}}-->
+<!--          </label>-->
+<!--          {% endfor %}-->
+<!--        </div>-->
+<!--      </div>-->
+<!--    </div>-->
+<!--    <input type='hidden' id="q_{{question_data.0.index}}_answer" value="">-->
+<!--  {% endfor %}-->
+<!--  <button type="submit" class="btn btn-primary">Submit</button>-->
+<!--  </form>-->
+<!--</div>-->
+
+
+
+
+<!-- Things to go on this page:
+1. Pulling questions and answers to show
+2. Progress towards end of the quiz
+3. buttons to move forward and backward
+4. Show the question numbers
+5. Scripting
+-->
+{% endblock %}

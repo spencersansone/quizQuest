@@ -1,0 +1,60 @@
+{% extends 'main/base.html' %} 
+
+{% block title %}Quiz Quest{% endblock %} 
+
+{% block css %}
+  
+{% endblock %}
+
+{% block body %}
+<div class="col-sm-12" style="text-align:center;">
+  <h1>{{certain_quiz.name}}</h1>
+</div>
+
+<!--<div class="btn-group" data-toggle="buttons">-->
+<!--  <label class="btn btn-primary active">-->
+<!--    <input type="radio" name="options" id="option1" checked> Apple-->
+<!--  </label>-->
+<!--  <label class="btn btn-primary">-->
+<!--    <input type="radio" name="options" id="option2"> Samsung-->
+<!--  </label>-->
+<!--  <label class="btn btn-primary">-->
+<!--    <input type="radio" name="options" id="option3"> Sony-->
+<!--  </label>-->
+<!--</div>-->
+
+<div class="col-sm-12" id="q_{{question_data.0.index}}">
+  <form role="form" id="form" action="{% url 'main:quiz' pk=certain_quiz.id %}" method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  {% for question_data in questions_data %}
+    <div class="card" style="width:100%;text-align:center;">
+      <div class="card-body">
+        <h5 class="card-title">Question #{{question_data.0.index}}</h5>
+        <!--<h6 class="card-subtitle mb-2 text-muted">{{question.question}}</h6>-->
+        <p class="card-text">{{question_data.0.question_text}}</p>
+        <div class="btn-group-vertical btn-group-toggle" data-toggle="buttons">
+          {% for answer in question_data.1 %}
+          <label class="btn btn-primary">
+            <input type="radio" required name="{{question_data.0.index}}" value="{{answer.pk}}" autocomplete="off"> {{answer.answer}}
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    <input type='hidden' id="q_{{question_data.0.index}}_answer" value="">
+  {% endfor %}
+  <button type="submit" class="btn btn-primary">Submit</button>
+  </form>
+</div>
+
+
+
+
+<!-- Things to go on this page:
+1. Pulling questions and answers to show
+2. Progress towards end of the quiz
+3. buttons to move forward and backward
+4. Show the question numbers
+5. Scripting
+-->
+{% endblock %}

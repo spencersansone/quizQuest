@@ -1,0 +1,35 @@
+<!--first name-->
+<!--last name-->
+<!--role-->
+<!--username-->
+
+{% extends 'main/base.html' %}
+
+{% block title %}Profile{% endblock %}
+
+{% block body %}
+<div class="col-sm-12">
+  <h1>Leaderboard</h1>
+  <h4>{{certain_quiz.Class.name}}:{{certain_quiz.name}}</h4>
+  <table class="table table-dark">
+    <thead>
+      <tr>
+        <th scope="col">#</th>
+        <th scope="col">Name</th>
+        <th scope="col">Grade</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for place in list %}
+        {% for person in place.1 %}
+        <tr>
+          <th scope="row">#{{place.0}}</th>
+          <td>{{person}}</td>
+          <td>{{place.2}}%</td>
+        </tr>
+        {% endfor %}
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

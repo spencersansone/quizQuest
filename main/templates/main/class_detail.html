@@ -1,0 +1,121 @@
+{% extends 'main/base.html' %} 
+
+{% block title %}Quiz Quest{% endblock %} 
+
+{% block css %}
+  
+{% endblock %}
+
+{% block body %}
+<script>
+  $(document).ready(function(){
+      $('[data-toggle="popover"]').popover();
+      console.log('popover');
+    });
+  $(function () {
+    $('[data-toggle="tooltip"]').tooltip()
+  })
+  $("body").on('click', '#close', function () {
+    // code here
+    $('#add_class_button').popover('hide');
+  });
+</script>
+<script>
+  // $(document).ready(function(){
+  //     $('[data-toggle="popover"]').popover();
+  //     console.log('popover');
+  //   });
+  $(function () {
+    $('[data-toggle="tooltip"]').tooltip()
+  })
+  // $("body").on('click', '#close', function () {
+  //   // code here
+  //   $('#add_class_button').popover('hide');
+  // });
+</script>
+<!--<div class="col-sm-2">-->
+{% if user_profile.role == "Instructor" %}
+<div class="col-sm-2">
+  <div class="card"> 
+    <h5 class="card-header">Add a Quiz</h5>
+    <div class="card-body">
+      <p class="card-text" style="text-align:center;">
+        <button 
+          type="button"
+          id="add_quiz_button"
+          class="btn btn-lg btn-block btn-primary" 
+          data-toggle="popover"
+          data-placement="bottom"
+      	  title="<p style='color:black;'>Add Quiz</p>" 
+          data-content='
+                  <form role="form" id="form" action="{% url "main:create_quiz" %}" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="form-group">
+                    
+                    
+                    <label for="questionsnumber">Number of question:</label>
+                    <input required type="text" class="form-control" name="num_questions" id="numberOfQuestions" aria-describedby="classHelp" placeholder="number">
+                    <input hidden type= number id = "code" name = "code" value = {{certain_class.code}} >
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                    <button type="button" id="close" class="btn btn-primary" >Close</button>
+                  </form>'
+          data-html="true"><img src="https://png.icons8.com/color/50/000000/plus.png">
+        </button>
+      </p>
+    </div>
+  </div>
+  </div>
+{% endif %}
+
+  
+  
+  {% for quiz in quizzes %}
+  <div class="col-sm-2">
+    <div class="card"> 
+      <h5 class="card-header">
+        <button type="button" class="btn btn-block btn-secondary" data-toggle="tooltip" data-placement="top" title="not needed lol">
+        {{quiz.index}} : {{quiz.name}}
+        </button>
+      </h5>
+      
+      <div class="card-body">
+        <p class="card-text">(Number of questions)</p>
+        <a href="{% url 'main:quiz' pk=quiz.pk %}" class="btn btn-primary">Go</a>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+  
+  
+
+<!--</div>-->
+
+
+
+
+<!--SAVE ALL THIS FOR LATER-->
+<!--This is for instructor classes-->
+  <!--{% for module in models %}-->
+  <!--  <div class="col-sm-2">-->
+  <!--    <div class="card"> -->
+  <!--      <h5 class="card-header">-->
+  <!--        {{ module.name }}-->
+  <!--      </h5>-->
+        
+  <!--      <div class="card-body">-->
+  <!--        <a href="#" class="btn btn-primary">Go</a>-->
+  <!--      </div>-->
+  <!--    </div>-->
+  <!--  </div>-->
+  <!--{% endfor %}-->
+  
+{% endblock %}
+
+<!--List of things needed on this page.
+1. List of Modules in given class
+2. Modules organized from first to last
+3. Popup on each clickable module that allows you to edit if you are an instructor
+4. Class info at the top
+5. Publish/unpublish for instructor -->

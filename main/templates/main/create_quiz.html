@@ -1,0 +1,74 @@
+{% extends 'main/base.html' %} 
+
+{% block title %}Quiz Quest{% endblock %} 
+
+{% block css %}
+  
+{% endblock %}
+
+{% block body %}
+{% if error_message %}
+<div class="col-sm-12">
+  <div class="alert alert-danger" role="alert">
+    {{error_message}}
+  </div>
+</div>
+{% endif %}
+
+<form role="form" id="reg_form" action="{% url 'main:create_quiz' %}" method="post" enctype="multipart/form-data">
+   {% csrf_token %}
+   
+   <input hidden type="number" id="code" name="code" value={{class}} >
+   <input hidden type="number" id="num_questions" name="num_questions" value={{n}}>
+   
+   <label for="quiz_name">Name:</label>
+   <input required type="text" class="form-control" name = "quiz_name" id="quiz_name" aria-describedby="emailHelp" placeholder="Quiz Name">
+       
+   <h1>Publish?</h1>
+   <div class="btn-group btn-group-toggle" data-toggle="buttons">
+      <label class="btn btn-secondary">
+         <input required type="radio" name="published" id="yes" value="yes" class="sr-only"> Yes
+      </label>
+      <label class="btn btn-secondary">
+         <input required type="radio" name="published" id="no" value="no" class="sr-only"> No
+      </label>
+   </div>
+   
+   <h1>Compete with another class?</h1>
+   <div class="btn-group btn-group-toggle" data-toggle="buttons">
+      <label class="btn btn-secondary">
+         <input required type="radio" name="compete" id="yes" value="yes" class="sr-only"> Yes
+      </label>
+      <label class="btn btn-secondary">
+         <input required type="radio" name="compete" id="no" value="no" class="sr-only"> No
+      </label>
+   </div>
+   
+   <br>
+   <input required type="text" class="form-control" name="opp_ins_class_code" id="question_1" placeholder="Opponent Instructor's Class Code">
+  
+   {% for i in l %}
+   <div id = "code_form" class="form-group">
+      <label id = "question_{{i}}" for='question_{{i}}'>Question {{i}}:</label>
+      <input required type="text" class="form-control" name="question_{{i}}" id="question_1" placeholder="">
+      <br>
+      <!--get the right answer-->
+      <label id = "correct_answer1" for='correct_answer1'>Correct Answer:</label>
+      <input required type="text" class="form-control" name="correct_answer_{{i}}" id="correct_answer1" placeholder="">
+      <!--get other answer--><br>
+      <label id = "other1_answer1" for='other1_answer1'>Other Answer 1:</label>
+      <input required type="text" class="form-control" name="other1_answer_{{i}}" id="other1_answer1" placeholder="">
+      <br>
+      <label id = "other2_answer1" for='other2_answer1'>Other Answer 2:</label>
+      <input type="text" class="form-control" name="other2_answer_{{i}}" id="other2_answer1" placeholder="">
+      <br>
+      <label id = "other3_answer1" for='other3_answer1'>Other Answer 3:</label>
+      <input type="text" class="form-control" name="other3_answer_{{i}}" id="other3_answer1" placeholder="">
+      <br>
+      <label id = "other4_answer1" for='other3_answer1'>Other Answer 4:</label>
+      <input type="text" class="form-control" name="other4_answer_{{i}}" id="other4_answer1" placeholder="">
+   </div>
+   {% endfor %}
+   <button type="submit" class="btn btn-primary">Sumbit</button>
+</form>
+{% endblock %}
