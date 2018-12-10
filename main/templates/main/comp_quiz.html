@@ -1,6 +1,6 @@
 {% extends 'main/base.html' %} 
 
-{% block title %}Quiz{% endblock %} 
+{% block title %}Competitive Quiz{% endblock %} 
 
 {% block css %}
   
@@ -12,7 +12,7 @@
 </div>
 
 <div class="col-sm-12" id="q_{{question_data.0.index}}">
-  <form role="form" id="form" action="{% url 'main:quiz' pk=certain_quiz.id %}" method="post" enctype="multipart/form-data">
+  <form role="form" id="form" action="{% url 'main:comp_quiz' pk=certain_comp_quiz.id %}" method="post" enctype="multipart/form-data">
   {% csrf_token %}
   {% for question_data in questions_data %}
     <div class="card" style="width:100%;text-align:center;">

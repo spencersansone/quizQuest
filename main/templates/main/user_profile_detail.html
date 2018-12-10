@@ -1,19 +1,8 @@
 {% extends 'main/base.html' %} 
 
-{% block title %}Quiz Quest{% endblock %} 
-
-{% block css %}
-  
-{% endblock %}
+{% block title %}Profile{% endblock %} 
 
 {% block body %}
-
-<!--first name-->
-<!--last name-->
-<!--picture-->
-<!--email-->
-
-
 <div class="col-sm-12">
     <h2>First Name: {{user_profile.user.first_name}}</h2>
     <h2>Last Name: {{user_profile.user.last_name}}</h2>
@@ -21,3 +10,4 @@
     <h2>Role: {{user_profile.role}}</h2>
     <h2>Date Joined: {{user_profile.datetime_joined}}</h2>
 </div>
+{% endblock %}

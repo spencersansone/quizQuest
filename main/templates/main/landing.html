@@ -1,6 +1,6 @@
 {% extends 'main/base.html' %} 
 
-{% block title %}Quiz Quest{% endblock %} 
+{% block title %}Class List{% endblock %} 
 
 {% block css %}
   
@@ -32,14 +32,6 @@
   });
 </script>
 
-
-<!--<div class="header">-->
-<!--  <a href="#default" class="logo">QuizQuest {{user_profile.role}}</a>-->
-<!--  <div class="header-right">-->
-<!--    <a href="{% url 'main:logout_user' %}">Log Out</a>-->
-<!--  </div>-->
-<!--</div>-->
-
 <!--GET call from Database to retrieve number of and names of classes the student is already enrolled in.-->
 <!--If the student does not have any clases, show only the add class card.-->
 
@@ -47,111 +39,92 @@
 <!--Add a icon to add a class. -->
 
   <!--This is for adding a class-->
-  <div class="col-sm-2">
+<div class="col-sm-4">
 
-    <div class="card"> 
-      <h5 class="card-header">Add a Class</h5>
-      <div class="card-body">
-        <p class="card-text" style="text-align:center;">
-          <button 
-            type="button"
-            id="add_class_button"
-            class="btn btn-lg btn-block btn-success" 
-            data-toggle="popover"
-            data-placement="bottom"
-        	  title="<p style='color:black;'>Add Class</p>" 
-            data-content='
-                    <form role="form" id="form" action="{% url "main:landing" %}" method="post" enctype="multipart/form-data">
-                      {% csrf_token %}
-                      <div class="form-group">
-                      
-                      <!--if the user is a student-->
-                      {% if user_profile.role == "Student" %}
-                      
-                        <label for="classname">Class Code:</label>
-                        <input required type="text" pattern="[0-9]*" class="form-control" name="classCode" id="submit_classcode" aria-describedby="classHelp" placeholder="Class code">
-                      
-                      <!--END IF STUDENT-->
-                      
-                      <!--if the user is an instructor-->
-                      {% else %}
-                      
-                      <!--What do instructors need to add?-->
-                      <!--... title, description,code .. what else? that is the only feilds-->
-                      <!--OK!-->
-                      <label for="name">Name:</label>
-                      <input required type="text" class="form-control" name="name" id="submit_name" aria-describedby="classHelp" placeholder="Name">
-                      <label for="description">Description:</label>
-                      <input required type="text" class="form-control" name="description" id="submit_description" aria-describedby="classHelp" placeholder="Description">
-                      <!--We can generate a random code, no need for instructor to assign it that way it is unique-->
-                      <!--If the teachers parameters are all good, then we redirect them to a so-called course detail page, they see the class code that has been generated for them (along with other details that are relevant), we can accomplish that in the views.py-->
-                      
-                      
-                      
-                      {% endif %}
-                      <!--END IF INSTRUCTOR-->
-                      </div>
-                      
-                      <button type="submit" class="btn btn-primary">Submit</button>
-                      <button type="button" id="close" class="btn btn-primary" >Close</button>
-                    </form>'
-            data-html="true"><img src="https://png.icons8.com/color/50/000000/plus.png">
-          </button>
-        </p>
-      </div>
+  <div class="card"> 
+    <h5 class="card-header">Add a Class</h5>
+    <div class="card-body">
+      <p class="card-text" style="text-align:center;">
+        <button 
+          type="button"
+          id="add_class_button"
+          class="btn btn-lg btn-block btn-success" 
+          data-toggle="popover"
+          data-placement="bottom"
+      	  title="<p style='color:black;'>Add Class</p>" 
+          data-content='
+                  <form role="form" id="form" action="{% url "main:landing" %}" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="form-group">
+                    
+                    <!--if the user is a student-->
+                    {% if user_profile.role == "Student" %}
+                    
+                      <label for="classname">Class Code:</label>
+                      <input required type="text" pattern="[0-9]*" class="form-control" name="classCode" id="submit_classcode" aria-describedby="classHelp" placeholder="Class code">
+                    
+                    <!--END IF STUDENT-->
+                    
+                    <!--if the user is an instructor-->
+                    {% else %}
+                    
+                    <!--What do instructors need to add?-->
+                    <!--... title, description,code .. what else? that is the only feilds-->
+                    <!--OK!-->
+                    <label for="name">Name:</label>
+                    <input required type="text" class="form-control" name="name" id="submit_name" aria-describedby="classHelp" placeholder="Name">
+                    <label for="description">Description:</label>
+                    <input required type="text" class="form-control" name="description" id="submit_description" aria-describedby="classHelp" placeholder="Description">
+                    <!--We can generate a random code, no need for instructor to assign it that way it is unique-->
+                    <!--If the teachers parameters are all good, then we redirect them to a so-called course detail page, they see the class code that has been generated for them (along with other details that are relevant), we can accomplish that in the views.py-->
+                    
+                    
+                    
+                    {% endif %}
+                    <!--END IF INSTRUCTOR-->
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                    <button type="button" id="close" class="btn btn-primary" >Close</button>
+                  </form>'
+          data-html="true"><img src="https://png.icons8.com/color/50/000000/plus.png">
+        </button>
+      </p>
     </div>
-  </div> 
+  </div>
+</div> 
   
 
-  
-  <!--This is for instructor comp invites-->
-  {% for comp_quiz in comp_quiz_invites %}
-  <div class="col-sm-2">
+<!--This is for instructor classes-->
+{% for class in classes %}
+  <div class="col-sm-4">
     <div class="card"> 
       <h5 class="card-header">
-        <button type="button" class="btn btn-block btn-secondary" data-toggle="tooltip" data-placement="top" title="not needed lol">
-        {{comp_quiz.quiz.name}}
+        <button type="button" class="btn btn-block btn-secondary" data-toggle="tooltip" data-placement="top" title="Code: {{class.code}}">
+        {{class.name}} 
         </button>
       </h5>
       
       <div class="card-body">
-        <p class="card-text">Instructor {{comp_quiz.quiz.Class.instructor.full_name}} has invited your class to compete.</p>
-        <a href="comp_quiz.id" class="btn btn-primary">Accept</a>
-        <a href="" class="btn btn-primary">DECLINE</a>
+        <p class="card-text">{{class.get_instructor_name}}: {{class.description}}</p>
+        <a href="{% url 'main:class_detail' code=class.code %}" class="btn btn-primary">Go</a>
       </div>
     </div>
   </div>
-  {% endfor %}
-  <!--This is for instructor classes-->
-  {% for class in classes %}
-    <div class="col-sm-2">
-      <div class="card"> 
-        <h5 class="card-header">
-          <button type="button" class="btn btn-block btn-secondary" data-toggle="tooltip" data-placement="top" title="Code: {{class.code}}">
-          {{class.name}} 
-          </button>
-        </h5>
-        
-        <div class="card-body">
-          <p class="card-text">{{class.get_instructor_name}}: {{class.description}}</p>
-          <a href="{% url 'main:class_detail' code=class.code %}" class="btn btn-primary">Go</a>
-        </div>
+{% endfor %}
+
+<!--this is for student classes-->
+{% for classReg in classRegs %}
+  <div class="col-sm-4">
+    <div class="card">
+      <h5 class="card-header">{{classReg.Class.name}}</h5>
+      <div class="card-body">
+        <p class="card-text">{{classReg.Class.get_instructor_name}}: {{classReg.Class.description}}</p>
+        <a href="{% url 'main:class_detail' code=classReg.Class.code %}" class="btn btn-primary">Go</a>
+        <!--<a href="" class="btn btn-primary">Go</a> -->
       </div>
     </div>
-  {% endfor %}
-  
-  <!--this is for student classes-->
-  {% for classReg in classRegs %}
-    <div class="col-sm-2">
-      <div class="card">
-        <h5 class="card-header">{{classReg.Class.name}}</h5>
-        <div class="card-body">
-          <p class="card-text">{{classReg.Class.get_instructor_name}}: {{classReg.Class.description}}</p>
-          <a href="{% url 'main:class_detail' code=classReg.Class.code %}" class="btn btn-primary">Go</a>
-          <!--<a href="" class="btn btn-primary">Go</a> -->
-        </div>
-      </div>
-    </div>
-  {% endfor %}
+  </div>
+{% endfor %}
 {% endblock %}
 

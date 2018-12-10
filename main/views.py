@@ -1,11 +1,11 @@
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
+from datetime import datetime, timedelta
 from django.http import JsonResponse
 from random import randint, shuffle
 from django.db.models import Max
 from django.urls import reverse
-from datetime import datetime
 from .models import *
 # End imports #
 # =========== #
@@ -181,7 +181,6 @@ def home(request):
         
     return render(request, 'main/home.html')
 
-
 def landing(request):
     u_name = request.user.username
     user_profile = UserProfile.objects.get(user__username=u_name)
@@ -271,14 +270,154 @@ def class_detail(request, code):
     u_name = request.user.username
     user_profile = UserProfile.objects.get(user__username=u_name)
     certain_class = Class.objects.get(code=code)
-    quizzes = Quiz.objects.filter(Class=certain_class).order_by('index')
+    quizzes = Quiz.objects.filter(
+        Class=certain_class).order_by('index')
+        
+    camp_quizzes = Quiz.objects.none()
+    for quiz in quizzes:
+        if len(CompQuiz.objects.filter(quiz=quiz)) == 0:
+            q = Quiz.objects.filter(id=quiz.pk)
+            camp_quizzes = (camp_quizzes|q)
+            
     dictionary = {}
-    # if user_profile.role == "Instructor":
-    #     dictionary['comp_quiz_invites'] = CompQuiz.objects.filter(invited_instructor=certain_class.instructor)
+    if user_profile.role == "Instructor":
+        dictionary['comp_quiz_invites'] = CompQuiz.objects.filter(
+            invited_instructor=certain_class.instructor,
+            approved = False,
+            declined = False)
+        dictionary['comp_quiz_pending_invites'] = CompQuiz.objects.filter(
+            quiz__Class = certain_class,
+            approved = False,
+            declined = False)
+        dictionary['comp_quiz_declined_invites'] = CompQuiz.objects.filter(
+            quiz__Class = certain_class,
+            approved = False,
+            declined = True)
+        
+        # dictionary['declined_comp_quizzes'] = CompQuiz.objects.filter(
+        #     invited_instructor=certain_class.instructor,
+        #     approved = False,
+        #     declined = True)
+    
+    
+    # created by certain teacher
+    challenge_comp_quizzes = CompQuiz.objects.filter(
+        quiz__Class__instructor = certain_class.instructor,
+        approved = True,
+        declined = False)
+    
+    # accepted by certain teacher
+    opponent_comp_quizzes = CompQuiz.objects.filter(
+        invited_instructor=certain_class.instructor,
+        approved = True,
+        declined = False)
+    comp_quizzes = (challenge_comp_quizzes|opponent_comp_quizzes)
+    
+    
     dictionary['certain_class'] = certain_class
-    dictionary['quizzes'] = quizzes
+    if request.user.get_user_profile().is_student:
+        dictionary['quizzes'] = camp_quizzes.filter(published=True)
+    else:
+        dictionary['quizzes'] = camp_quizzes
     dictionary['user_profile'] = user_profile
+    dictionary['comp_quizzes'] = comp_quizzes
+    
+    
+        
     return render(request, 'main/class_detail.html', dictionary)
+    
+def comp_quiz(request, pk):
+    certain_comp_quiz = CompQuiz.objects.get(id=pk)
+    certain_quiz = certain_comp_quiz.quiz
+    
+    user = request.user
+    user_profile = UserProfile.objects.get(user__username=user)
+    
+    if request.method == "POST":
+        certain_comp_quiz_entry = CompQuizEntry.objects.get(
+            certain_comp_quiz=certain_comp_quiz,
+            student = user_profile,
+            datetime_completed = None)
+        # for when a student submits a quiz with answers
+        
+        print(request.POST)
+        
+        #total number of questions
+        num_qs = 0
+        
+        # total number of correct questions
+        num_cqs = 0
+        # print(request.POST)
+        for answer in request.POST:
+            s = str(answer)
+            if s == "csrfmiddlewaretoken":
+                pass
+            else:
+                num_qs += 1
+                
+                # question index number
+                q_num = int(s)
+                a_id = request.POST.get(answer)
+                certain_answer = Answer.objects.get(pk=a_id)
+                
+                # store question entry
+                certain_question_entry = CompQuestionEntry.objects.create(
+                    comp_quiz_entry = certain_comp_quiz_entry,
+                    selected_answer = certain_answer,
+                    correct_answer = Answer.objects.get(
+                        question= certain_answer.question,
+                        correct = True)
+                    )
+                    
+                if certain_question_entry.selected_answer.correct:
+                    num_cqs += 1
+        # dfwsfwfehuif
+        certain_comp_quiz_entry.final_grade = round(num_cqs / num_qs, 2)*100
+        certain_comp_quiz_entry.datetime_completed = getNowDateTime()
+        certain_comp_quiz_entry.save()
+        
+
+        
+        return redirect(reverse('main:comp_quiz_results', kwargs={ 'pk': certain_comp_quiz_entry.id }))
+    else:
+        
+        
+        
+        # either create a new quiz entry OR resume from one already created and in progress?
+        
+        # gets all quiz entries for certain_quiz and certain user_profile that are not complete
+        quiz_entries = CompQuizEntry.objects.filter(
+            datetime_completed=None,
+            student=user_profile,
+            certain_comp_quiz=certain_comp_quiz)
+        
+        if len(quiz_entries) == 0:
+            #create a new quiz entry
+            certain_quiz_entry = CompQuizEntry.objects.create(
+                student = user_profile,
+                datetime_started = getNowDateTime(),
+                certain_comp_quiz = certain_comp_quiz)
+        elif len(quiz_entries) == 1:
+            # use quizentry that was found
+            certain_quiz_entry = quiz_entries[0]
+        else:
+            pass
+            
+        
+        questions = Question.objects.filter(quiz=certain_quiz)
+        
+        questions_data = []
+        for question in questions:
+            answers = Answer.objects.filter(question=question)
+            questions_data += [[question, answers]]
+
+        dictionary = {}
+        dictionary['certain_quiz'] = certain_quiz
+        dictionary['certain_comp_quiz'] = certain_comp_quiz
+        dictionary['user_profile'] = user_profile
+        dictionary['questions_data'] = questions_data
+        dictionary['certain_quiz_entry'] = certain_quiz_entry
+        return render(request,'main/comp_quiz.html', dictionary)
     
 def quiz(request, pk):
     certain_quiz = Quiz.objects.get(id=pk)
@@ -390,7 +529,7 @@ def quiz(request, pk):
         
         questions_data = []
         for question in questions:
-            answers = Answer.objects.filter(question=question)
+            answers = Answer.objects.filter(question=question).order_by('?')
             questions_data += [[question, answers]]
 
         dictionary = {}
@@ -411,14 +550,49 @@ def quiz_results(request, pk):
         certain_quiz=certain_quiz_entry.certain_quiz,
         student = certain_user_profile)
     
+    total_seconds_taken = certain_quiz_entry.datetime_completed - certain_quiz_entry.datetime_started
+    total_seconds_taken = total_seconds_taken.total_seconds()
+    sec = timedelta(seconds=total_seconds_taken)
+    d = datetime(1,1,1) + sec
+    time_taken = "%02d Day(s) %02d Hour(s) %02d Minute(s) %02d Second(s)" % (d.day-1, d.hour, d.minute, d.second)
+    
     dictionary = {}
     dictionary['certain_quiz_entry'] = certain_quiz_entry
     dictionary['grade'] = certain_quiz_entry.final_grade
     dictionary['question_entries'] = QuestionEntry.objects.filter(
         quiz_entry = certain_quiz_entry)
     dictionary['attempt_num'] = len(all_certain_quiz_entries)
+    dictionary['time_taken'] = time_taken
     
     return render(request, 'main/quiz_results.html', dictionary)
+
+def comp_quiz_results(request, pk):
+    certain_user = request.user
+    
+    certain_user_profile = UserProfile.objects.get(user=certain_user)
+    
+    certain_comp_quiz_entry = CompQuizEntry.objects.get(id=pk)
+    
+    all_certain_comp_quiz_entries = CompQuizEntry.objects.filter(
+        certain_comp_quiz=certain_comp_quiz_entry.certain_comp_quiz,
+        student = certain_user_profile)
+        
+        
+    total_seconds_taken = certain_comp_quiz_entry.datetime_completed - certain_comp_quiz_entry.datetime_started
+    total_seconds_taken = total_seconds_taken.total_seconds()
+    sec = timedelta(seconds=total_seconds_taken)
+    d = datetime(1,1,1) + sec
+    time_taken = "%02d Day(s) %02d Hour(s) %02d Minute(s) %02d Second(s)" % (d.day-1, d.hour, d.minute, d.second)
+    
+    dictionary = {}
+    dictionary['certain_comp_quiz_entry'] = certain_comp_quiz_entry
+    dictionary['grade'] = certain_comp_quiz_entry.final_grade
+    dictionary['question_entries'] = CompQuestionEntry.objects.filter(
+        comp_quiz_entry = certain_comp_quiz_entry)
+    dictionary['attempt_num'] = len(all_certain_comp_quiz_entries)
+    dictionary['time_taken'] = time_taken
+    
+    return render(request, 'main/comp_quiz_results.html', dictionary)
 
 
 def create_quiz(request):
@@ -736,7 +910,132 @@ def create_quiz(request):
 def profile_detail(request, pk):
     pass
     
-def leaderboard(request, pk):
+def leaderboard_competitive(request, pk):
+    certain_comp_quiz = CompQuiz.objects.get(id=pk)
+    certain_quiz = certain_comp_quiz.quiz
+    
+    #get all entries for this quiz
+    all_certain_comp_quiz_entries = CompQuizEntry.objects.filter(
+        certain_comp_quiz=certain_comp_quiz)
+    
+    # get all students in both classes
+    challenger_students = ClassRegistration.objects.filter(Class=certain_comp_quiz.quiz.Class)
+    print("chals:" + str(challenger_students))
+    
+    # opponent_class = Class.objects.get()
+    opponent_students = ClassRegistration.objects.filter(Class=certain_comp_quiz.Class)
+    print("opps:" + str(opponent_students))
+    
+    
+    all_students = (challenger_students | opponent_students)
+    
+    # Go through the students and pull their best attempt. 
+    # Then, add them to a dictionary. 
+    # Then, convert the dictionary into an ordered list of subists with places put in.
+    d = {}
+    l = []
+    place = 1
+    total = 0
+    num_students=0
+    for student in all_students:
+        best_student_certain_comp_quiz_grade = all_certain_comp_quiz_entries.filter(student=student.student).aggregate(Max('final_grade'))['final_grade__max']
+        
+        if best_student_certain_comp_quiz_grade != None:
+            try:
+                total = total + best_student_certain_comp_quiz_grade #need to collect all the best scores from the students in class
+                len(d[best_student_certain_comp_quiz_grade])
+                d[best_student_certain_comp_quiz_grade] += [student.student.full_name]
+            except KeyError:
+                d[best_student_certain_comp_quiz_grade] = [student.student.full_name]
+    for i,j in sorted(d.items(),reverse=True):
+        l += [[place,j,i]]
+        place += len(j)
+            
+    dictionary = {}
+    dictionary['list'] = l
+    dictionary['certain_quiz'] = certain_quiz
+    dictionary['certain_comp_quiz'] = certain_comp_quiz
+    return render(request, 'main/leaderboard.html', dictionary)
+
+def class_grade_book(request, code):
+    # show average for class
+    # average = total grade points / total possible
+    total_earned = 0
+    total_possible = 0
+    
+    certain_class = Class.objects.get(code=code)
+    user_profile = request.user.get_user_profile()
+    
+    # see if student did each quiz
+    camp_quizzes = Quiz.objects.filter(Class=certain_class).order_by('index')
+    
+    # created by certain teacher
+    challenge_comp_quizzes = CompQuiz.objects.filter(
+        quiz__Class__instructor = certain_class.instructor,
+        approved = True,
+        declined = False)
+    
+    # accepted by certain teacher
+    opponent_comp_quizzes = CompQuiz.objects.filter(
+        invited_instructor=certain_class.instructor,
+        approved = True,
+        declined = False)
+    comp_quizzes = (challenge_comp_quizzes|opponent_comp_quizzes)
+    print(comp_quizzes)
+    
+    camp_average = 0
+    comp_average = 0
+    camp_quiz_list = []
+    comp_quiz_list = []
+    for camp_quiz in camp_quizzes:
+        camp_quiz_entries = QuizEntry.objects.filter(
+            certain_quiz = camp_quiz,
+            student = user_profile)
+        
+        if len(camp_quiz_entries) == 0:
+            camp_quiz_list += [["{}) {}".format(camp_quiz.index,camp_quiz.name),"Not Attempted"]]
+        else:
+            best_grade = camp_quiz_entries.aggregate(Max('final_grade'))['final_grade__max']
+            total_possible += 100
+            total_earned += best_grade
+            camp_quiz_list += [["{}) {}".format(camp_quiz.index,camp_quiz.name),"{}%".format(best_grade)]]
+    try:
+        camp_average = round((total_earned / total_possible) * 100, 2)
+    except:
+        pass
+    
+    total_earned = 0
+    total_possible = 0
+    for comp_quiz in comp_quizzes:
+        comp_quiz_entries = CompQuizEntry.objects.filter(
+            certain_comp_quiz = comp_quiz,
+            student = user_profile)
+        
+        if len(comp_quiz_entries) == 0:
+            comp_quiz_list += [["{}) {}".format(comp_quiz.quiz.index,comp_quiz.quiz.name),"Not Attempted"]]
+        else:
+            best_grade = comp_quiz_entries.aggregate(Max('final_grade'))['final_grade__max']
+            total_possible += 100
+            total_earned += best_grade
+            comp_quiz_list += [["{}) {}".format(comp_quiz.quiz.index,comp_quiz.quiz.name),"{}%".format(best_grade)]]
+    try:
+        comp_average = round((total_earned / total_possible) * 100, 2)
+    except:
+        pass
+    
+    dictionary = {}
+    dictionary['camp_average'] = camp_average
+    dictionary['comp_average'] = comp_average
+    dictionary['camp_quiz_list'] = camp_quiz_list
+    dictionary['comp_quiz_list'] = comp_quiz_list
+    dictionary['certain_class'] = certain_class
+    # print(l)
+    # dictionary['']
+    
+    return render(request, 'main/class_grade_book.html', dictionary)
+    
+
+def leaderboard_campaign(request, pk):
     certain_quiz = Quiz.objects.get(id=pk)
     
     #get all entries for this quiz
@@ -757,8 +1056,6 @@ def leaderboard(request, pk):
     for student in students:
         best_student_certain_quiz_grade = all_certain_quiz_entries.filter(student=student.student).aggregate(Max('final_grade'))['final_grade__max']
         
-        
-        
         if best_student_certain_quiz_grade != None:
             try:
                 total = total + best_student_certain_quiz_grade #need to collect all the best scores from the students in class
@@ -775,16 +1072,42 @@ def leaderboard(request, pk):
     dictionary['certain_quiz'] = certain_quiz
     return render(request, 'main/leaderboard.html', dictionary)
 
-def accept_comp_quiz(request, pk):
+def accept_comp_quiz(request, pk, code):
     certain_comp_quiz = CompQuiz.objects.get(id=pk)
     certain_comp_quiz.approved = True
-    return redirect(reverse('main:landing'))
+    certain_comp_quiz.save()
+    return redirect(reverse('main:class_detail', kwargs={ 'code': code }))
     
-def decline_comp_quiz(request, pk):
+def decline_comp_quiz(request, pk, code):
     certain_comp_quiz = CompQuiz.objects.get(id=pk)
     certain_comp_quiz.declined = True
-    return redirect(reverse('main:landing'))
+    certain_comp_quiz.save()
+    return redirect(reverse('main:class_detail', kwargs={ 'code': code }))
     
+def discard_declined_comp_quiz(request, pk, code):
+    certain_comp_quiz = CompQuiz.objects.get(id=pk)
+    certain_comp_quiz.delete()
+    return redirect(reverse('main:class_detail', kwargs={ 'code': code }))
+    
+def convert_declined_comp_quiz(request, pk, code):
+    certain_comp_quiz = CompQuiz.objects.get(id=pk)
+    certain_quiz = Quiz.objects.get(id=certain_comp_quiz.quiz.pk)
+    certain_quiz.pk = None
+    certain_quiz.save()
+    certain_comp_quiz.delete()
+    return redirect(reverse('main:class_detail', kwargs={ 'code': code }))
+
+def publish_quiz(request, pk, code):
+    certain_quiz = Quiz.objects.get(id=pk)
+    certain_quiz.published = True
+    certain_quiz.save()
+    return redirect(reverse('main:class_detail', kwargs={'code': code}))
+
+def unpublish_quiz(request, pk, code):
+    certain_quiz = Quiz.objects.get(id=pk)
+    certain_quiz.published = False
+    certain_quiz.save()
+    return redirect(reverse('main:class_detail', kwargs={'code': code}))
     
 # Start APIS
 def verify_login_API(request, username, password):
@@ -852,6 +1175,26 @@ def get_quiz_qas_API(request, quiz_id):
         response['quiz_ids'] = None
     #all the relevant quizzes
     return JsonResponse(response)
+    
+# get classes given a student
+def get_student_classes_API(request, username):
+    response = {}
+    try:
+        user = User.objects.get(username=username)
+        user_profile = UserProfile.objects.get(user=user)
+        class_regs = ClassRegistration.objects.filter(student=user_profile)
+        l=[]
+        for class_reg in class_regs:
+            l += [[class_reg.Class.id,class_reg.Class.name,class_reg.Class.instructor.full_name]]
+        response['exists'] = True
+        response['classes_info'] = l
+    except:
+        response['exists'] = False
+        response['classes_info'] = None
+    return JsonResponse(response)
+
+
+# get quizzes given a student
 
     
 # class ClassesForStudentSerializerList(generics.ListAPIView):

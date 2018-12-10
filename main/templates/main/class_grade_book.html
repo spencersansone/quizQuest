@@ -1,0 +1,61 @@
+{% extends 'main/base.html' %} 
+
+{% block title %}Class Grade Book{% endblock %} 
+
+{% block body %}
+<div class="col-sm-12" style="text-align:center;">
+  <a class="btn btn-danger btn-lg btn-block" href="{% url 'main:class_detail' code=certain_class.code %}" role="button">Back To Class</a>
+  <br>
+  <h2>Class: {{certain_class.name}}</h2>
+  <h2>Instructor: {{certain_class.instructor.full_name}}</h2>
+  <h4>Student: {{request.user.get_full_name}}</h4>
+  
+  <table class="table">
+    <thead>
+      <tr>
+        <th colspan="2">Campaign</th>
+      </tr>
+      <tr>
+        <th scope="col">Quiz</th>
+        <th scope="col">Grade</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for camp_quiz in camp_quiz_list %}
+      <tr>
+        <th scope="row">{{camp_quiz.0}}</th>
+        <td>{{camp_quiz.1}}</td>
+      </tr>
+      {% endfor %}
+      <tr>
+        <th colspan="6">Campaign Average: {{camp_average}}%</th>
+      </tr>
+    </tbody>
+  </table>
+  
+  <table class="table table-dark">
+    <thead>
+      <tr>
+        <th colspan="2">Competitive</th>
+      </tr>
+      <tr>
+        <th scope="col">Quiz</th>
+        <th scope="col">Grade</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for comp_quiz in comp_quiz_list %}
+      <tr>
+        <th scope="row">{{comp_quiz.0}}</th>
+        <td>{{comp_quiz.1}}</td>
+      </tr>
+      {% endfor %}
+      <tr>
+        <th colspan="6">Competitive Average: {{comp_average}}%</th>
+      </tr>
+    </tbody>
+  </table>
+  <br>
+  <a class="btn btn-danger btn-lg btn-block" href="{% url 'main:class_detail' code=certain_class.code %}" role="button">Back To Class</a>
+</div>
+{% endblock %}

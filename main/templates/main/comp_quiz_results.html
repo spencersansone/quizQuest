@@ -1,6 +1,6 @@
 {% extends 'main/base.html' %} 
 
-{% block title %}Quiz Results{% endblock %} 
+{% block title %}Competitive Quiz Results{% endblock %} 
 
 {% block css %}
   
@@ -8,7 +8,7 @@
 
 {% block body %}
 <div class="col-sm-12" style="text-align:center;">
-  <h1>{{certain_quiz_entry.certain_quiz.name}}</h1>
+  <h1>{{certain_comp_quiz_entry.certain_quiz.name}}</h1>
   <br>
   <h4>Attempt #{{attempt_num}}</h4>
   <h4>Grade : {{grade}}%</h4>
@@ -21,12 +21,12 @@
   <div class="card" style="width:100%;text-align:center;">
       <div class="card-body">
         <h5 class="card-title">Question #{{entry.selected_answer.question.index}}</h5>
-        
         <!--content of question-->
         <p class="card-text">{{entry.selected_answer.question.question_text}}</p>
         <div class="btn-group-vertical btn-group-toggle" data-toggle="buttons">
           <!--we need to display the answers here, 
           somehow showing the correct and incorrect answers-->
+          
           
           {% if entry.selected_answer.correct %}
           <!--if correct, just show it in green-->
@@ -54,8 +54,8 @@
     </div>
   
   {% endfor %}
-  <a class="btn btn-primary" href="{% url 'main:quiz'  pk=certain_quiz_entry.certain_quiz.pk %}" role="button">Try Again</a>
-  <a class="btn btn-primary" href="{% url 'main:leaderboard_campaign'  pk=certain_quiz_entry.certain_quiz.pk %}" role="button">View Leaderboard</a>
-  <a class="btn btn-secondary" href="{% url 'main:class_detail' code=certain_quiz_entry.certain_quiz.Class.code %}" role="button">Back to Class</a>
+  <a class="btn btn-primary" href="{% url 'main:comp_quiz'  pk=certain_comp_quiz_entry.certain_comp_quiz.pk %}" role="button">Try Again</a>
+  <a class="btn btn-primary" href="{% url 'main:leaderboard_competitive'  pk=certain_comp_quiz_entry.certain_comp_quiz.pk %}" role="button">View Leaderboard</a>
+  <a class="btn btn-secondary" href="{% url 'main:class_detail' code=certain_comp_quiz_entry.certain_comp_quiz.Class.code %}" role="button">Back to Class</a>
 </div>
 {% endblock %}

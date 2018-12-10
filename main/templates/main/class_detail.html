@@ -1,41 +1,28 @@
 {% extends 'main/base.html' %} 
 
-{% block title %}Quiz Quest{% endblock %} 
-
-{% block css %}
-  
-{% endblock %}
+{% block title %}{{certain_class.name}}{% endblock %} 
 
 {% block body %}
 <script>
   $(document).ready(function(){
       $('[data-toggle="popover"]').popover();
-      console.log('popover');
-    });
-  $(function () {
-    $('[data-toggle="tooltip"]').tooltip()
-  })
-  $("body").on('click', '#close', function () {
-    // code here
-    $('#add_class_button').popover('hide');
+      $('[data-toggle="tooltip"]').tooltip();
+      $("body").on('click', '#close', function () {
+        $('[data-toggle="popover"]').popover('hide');
+      });
+      $("body").on('click', '#add_quiz_button', function () {
+        document.getElementById("number_of_questions").focus();
+      });
   });
 </script>
-<script>
-  // $(document).ready(function(){
-  //     $('[data-toggle="popover"]').popover();
-  //     console.log('popover');
-  //   });
-  $(function () {
-    $('[data-toggle="tooltip"]').tooltip()
-  })
-  // $("body").on('click', '#close', function () {
-  //   // code here
-  //   $('#add_class_button').popover('hide');
-  // });
-</script>
-<!--<div class="col-sm-2">-->
+
+<div class="col-sm-12">
+  <a class="btn btn-danger btn-lg btn-block" href="{% url 'main:landing' %}" role="button">Back to Class List</a>
+  <br>
+</div>
+
 {% if user_profile.role == "Instructor" %}
-<div class="col-sm-2">
+<div class="col-sm-4">
   <div class="card"> 
     <h5 class="card-header">Add a Quiz</h5>
     <div class="card-body">
@@ -47,70 +34,125 @@
           data-toggle="popover"
           data-placement="bottom"
       	  title="<p style='color:black;'>Add Quiz</p>" 
+      	  data-html="true"
           data-content='
-                  <form role="form" id="form" action="{% url "main:create_quiz" %}" method="post" enctype="multipart/form-data">
-                    {% csrf_token %}
-                    <div class="form-group">
-                    
-                    
-                    <label for="questionsnumber">Number of question:</label>
-                    <input required type="text" class="form-control" name="num_questions" id="numberOfQuestions" aria-describedby="classHelp" placeholder="number">
-                    <input hidden type= number id = "code" name = "code" value = {{certain_class.code}} >
-                    </div>
-                    
-                    <button type="submit" class="btn btn-primary">Submit</button>
-                    <button type="button" id="close" class="btn btn-primary" >Close</button>
-                  </form>'
-          data-html="true"><img src="https://png.icons8.com/color/50/000000/plus.png">
+            <form role="form" id="form" action="{% url "main:create_quiz" %}" method="post" enctype="multipart/form-data">
+              {% csrf_token %}
+              <div class="form-group">
+                <label for="questionsnumber">Number of questions:</label>
+                <input required type="text" class="form-control" name="num_questions" id="number_of_questions" aria-describedby="classHelp" placeholder="#">
+                <input hidden type=number id="code" name="code" value={{certain_class.code}}>
+              </div>
+              
+              <button type="submit" class="btn btn-primary">Submit</button>
+              <button type="button" id="close" class="btn btn-primary" >Close</button>
+            </form>'>
+          <img src="https://png.icons8.com/color/50/000000/plus.png">
         </button>
       </p>
     </div>
   </div>
-  </div>
+</div>
+{% else %}
+<div class="col-sm-12">
+  <a class="btn btn-info btn-lg btn-block" href="{% url 'main:class_grade_book' code=certain_class.code %}" role="button">Grade Book</a>
+  <br>
+</div>
 {% endif %}
 
-  
-  
-  {% for quiz in quizzes %}
-  <div class="col-sm-2">
-    <div class="card"> 
-      <h5 class="card-header">
-        <button type="button" class="btn btn-block btn-secondary" data-toggle="tooltip" data-placement="top" title="not needed lol">
-        {{quiz.index}} : {{quiz.name}}
-        </button>
-      </h5>
-      
-      <div class="card-body">
-        <p class="card-text">(Number of questions)</p>
-        <a href="{% url 'main:quiz' pk=quiz.pk %}" class="btn btn-primary">Go</a>
-      </div>
+{% for comp_quiz_invite in comp_quiz_invites %}
+<div class="col-sm-4">
+  <div class="card text-white bg-dark"> 
+    <h5 class="card-header">
+      <button type="button" class="btn btn-block btn-secondary" data-toggle="tooltip" data-placement="top" title="not needed lol">
+        {{comp_quiz_invite.quiz.index}} : {{comp_quiz_invite.quiz.name}}
+      </button>
+    </h5>
+    
+    <div class="card-body">
+      <p class="card-text">Questions: {{comp_quiz_invite.quiz.get_num_questions}}</p>
+      <a href="{% url 'main:accept_comp_quiz' pk=comp_quiz_invite.pk code=certain_class.code %}" class="btn btn-primary">Accept</a>
+      <a href="{% url 'main:decline_comp_quiz' pk=comp_quiz_invite.pk code=certain_class.code %}" class="btn btn-primary">Decline</a>
     </div>
   </div>
-  {% endfor %}
-  
-  
+</div>
+{% endfor %}
 
-<!--</div>-->
+{% for comp_quiz_declined_invite in comp_quiz_declined_invites %}
+<div class="col-sm-4">
+  <div class="card text-white bg-warning"> 
+    <h5 class="card-header">{{comp_quiz_declined_invite.quiz.index}} : {{comp_quiz_declined_invite.quiz.name}}</h5>
+    
+    <div class="card-body">
+      <p class="card-text">Questions: {{comp_quiz_declined_invite.quiz.get_num_questions}}</p>
+      <p class="card-text">Your invite to {{comp_quiz_declined_invite.invited_instructor.full_name}} was declined. Would you like to convert this quiz to campaign or discard?</p>
+      <a href="{% url 'main:convert_declined_comp_quiz' pk=comp_quiz_declined_invite.pk code=certain_class.code %}" class="btn btn-primary">Convert</a>
+      <a href="{% url 'main:discard_declined_comp_quiz' pk=comp_quiz_declined_invite.pk code=certain_class.code %}" class="btn btn-danger">Discard</a>
+    
 
+    </div>
+  </div>
+</div>
+{% endfor %}
 
+{% for comp_quiz_pending_invite in comp_quiz_pending_invites %}
+<div class="col-sm-4">
+  <div class="card text-white bg-dark"> 
+    <h5 class="card-header">
+      <button type="button" class="btn btn-block btn-secondary" data-toggle="tooltip" data-placement="top" title="not needed lol">
+        {{comp_quiz_pending_invite.quiz.index}} : {{comp_quiz_pending_invite.quiz.name}}
+      </button>
+    </h5>
+    
+    <div class="card-body">
+      <p class="card-text">Questions: {{comp_quiz_pending_invite.quiz.get_num_questions}}</p>
+      <a class="btn btn-warning">Invite Pending</a>
+    </div>
+  </div>
+</div>
+{% endfor %}
 
+{% for comp_quiz in comp_quizzes %}
+<div class="col-sm-4">
+  <div class="card text-white bg-primary"> 
+    <h5 class="card-header">{{comp_quiz.quiz.index}} : {{comp_quiz.quiz.name}}</h5>
+    
+    <div class="card-body">
+      <p class="card-text">Questions: {{comp_quiz.quiz.get_num_questions}}</p>
+      {% if user_profile.is_student %}
+      <a href="{% url 'main:comp_quiz' pk=comp_quiz.pk %}" class="btn btn-success">Start</a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endfor %}
 
-<!--SAVE ALL THIS FOR LATER-->
-<!--This is for instructor classes-->
-  <!--{% for module in models %}-->
-  <!--  <div class="col-sm-2">-->
-  <!--    <div class="card"> -->
-  <!--      <h5 class="card-header">-->
-  <!--        {{ module.name }}-->
-  <!--      </h5>-->
-        
-  <!--      <div class="card-body">-->
-  <!--        <a href="#" class="btn btn-primary">Go</a>-->
-  <!--      </div>-->
-  <!--    </div>-->
-  <!--  </div>-->
-  <!--{% endfor %}-->
-  
+{% for quiz in quizzes %}
+<div class="col-sm-4">
+  <div class="card"> 
+    <h5 class="card-header">
+      <button type="button" class="btn btn-block btn-secondary" data-toggle="tooltip" data-placement="top" title="not needed lol">
+      {{quiz.index}} : {{quiz.name}}
+      </button>
+    </h5>
+    
+    <div class="card-body">
+      <!--<p class="card-text">(Number of questions)</p>-->
+      <p class="card-text">Questions: {{quiz.get_num_questions}}</p>
+      {% if request.user.get_user_profile.is_student %}
+      <a href="{% url 'main:quiz' pk=quiz.pk %}" class="btn btn-success">Start</a>
+      {% else %}
+        {% if quiz.published %}
+        <a href="{% url 'main:unpublish_quiz' pk=quiz.pk code=certain_class.code %}" class="btn btn-danger">Unpublish</a>
+        {% else %}
+        <a href="{% url 'main:publish_quiz' pk=quiz.pk code=certain_class.code %}" class="btn btn-success">Publish</a>
+        {% endif %}
+      {% endif %}
+      
+    </div>
+  </div>
+</div>
+{% endfor %}
 {% endblock %}
 
 <!--List of things needed on this page.

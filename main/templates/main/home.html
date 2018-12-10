@@ -3,9 +3,7 @@
 {% block title %}Welcome to Quiz Quest{% endblock %} 
 
 {% block head %}
-
 <head>
-  
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
 * {box-sizing: border-box;}
@@ -63,11 +61,6 @@ body {
 }
 </style>
 </head>
-
-
-<p></p>
-
-
 {% endblock %}
 
 
@@ -82,19 +75,16 @@ body {
         }
     }
 </script>
-
 <script type="text/javascript">
   $(document).ready(function(){
-    $( "#student" ).click(function() {
-      console.log('student');
+    $('[data-toggle="popover"]').popover();
+    $("#student").change(function () {
+      $('#code_label').text("Class Code:");
     });
-    
-    $(document).ready(function(){
-      $('[data-toggle="popover"]').popover();
-      console.log('popover');
+    $("#instructor").change(function () {
+      $('#code_label').text("School Code:");
     });
   });
-  // this is the start of jquery code
 </script>
 
 {% if error_message %}
@@ -106,92 +96,93 @@ body {
 {% endif %}
 
 <div class="col-sm-12">
-    <div class="accordion" id="homeAccordion">
-        <div class="card">
-            <div class="card-header" id="headingOne">
-                <h5 class="mb-0">
-                    <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                        Log In
-                    </button>
-                </h5>
-            </div>
-            <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#homeAccordion">
-                <div class="card-body">
-                    <form role="form" id="form" action="{% url 'main:home' %}" method="post" enctype="multipart/form-data">
-                      {% csrf_token %}
-                      <div class="form-group">
-                        <label for="Username">Email:</label>
-                        <input required type="email" class="form-control" name="login_email" id="login_email" aria-describedby="emailHelp" placeholder="Username">
-                        <!--<small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>-->
-                      </div>
-                      <div class="form-group">
-                        <label for="password">Password</label>
-                        <input required type="password" class="form-control" name = "password" id="password" placeholder="Password">
-                      </div>
-                      <button type="submit" class="btn btn-primary">Submit</button>
-                    </form>
+  <h1 style="text-align:center;">Welcome to Quiz Quest!</h1>
+  <div class="accordion" id="homeAccordion">
+      <div class="card">
+          <div class="card-header" id="headingOne">
+            <h5 class="mb-0">
+                <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                    Log In
+                </button>
+            </h5>
+          </div>
+          <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#homeAccordion">
+            <div class="card-body">
+              <form role="form" id="form" action="{% url 'main:home' %}" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="form-group">
+                  <label for="Username">Email:</label>
+                  <input required type="email" class="form-control" name="login_email" id="login_email" aria-describedby="emailHelp" placeholder="Username">
+                  <!--<small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>-->
                 </div>
+                <div class="form-group">
+                  <label for="password">Password</label>
+                  <input required type="password" class="form-control" name = "password" id="password" placeholder="Password">
+                </div>
+                <button type="submit" class="btn btn-primary">Submit</button>
+              </form>
             </div>
         </div>
-        <div class="card">
-            <div class="card-header" id="headingTwo">
-                <h5 class="mb-0">
-                    <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                        Register
-                    </button>
-                </h5>
-            </div>
-            <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#homeAccordion">
-                <div class="card-body">
-                    <form role="form" id="reg_form" action="{% url 'main:home' %}" method="post" enctype="multipart/form-data">
-                        {% csrf_token %}
-                      <div class="form-group">
-                        <label for="first_name">First Name:</label>
-                        <input required type="text" class="form-control" name = "first_name" id="first_name" aria-describedby="emailHelp" placeholder="First Name">
-                      
-                        <label for="last_name">Last Name:</label>
-                        <input required type="text" class="form-control" name = "last_name" id="last_name" aria-describedby="emailHelp" placeholder="Last Name">
-                      
-                        <!--<label for="SchoolCode">School Code:</label>-->
-                        <!--<input required type="text" class="form-control" name = "code" id="SchoolCode" placeholder="School Code">-->
-                         
-                        <label for="email">Email:</label>
-                        <input required type="email" class="form-control" name ="email" id="email" placeholder="Email">
-                         
-                        <!--<label for="Username">Username:</label>-->
-                        <!--<input required type="text" class="form-control" name = "username" id="username" placeholder="Username">-->
-                        
-                        <label for="pword">Password:</label>
-                        <input required type="password" class="form-control" name = "pword" id="pword" placeholder="Password">
-                        
-                        <label for="pword2">Confirm Password:</label>
-                        <input required type="password" class="form-control" name = "pword2" id="pword2" placeholder="Confirm Password" oninput="check(this)">
-                        <span id='message'></span>
-                        
-                      </div>
-                      <div class="btn-group btn-group-toggle" data-toggle="buttons">
-                          <label class="btn btn-secondary">
-                              <input type="radio" name="role" id="instructor" value="instructor" class="sr-only" required onclick="instructorCode()"> Instructor
-                          </label>
-                          <label class="btn btn-secondary">
-                              <input type="radio" name="role" id="student" value="student" class="sr-only" required onclick="studentCode()"> Student
-                          </label>
-                      </div>
-                      
-                      <div id = "code_form" class="form-group">
-                        <label id = "code_label" for='code'>Code:</label>
-                        <input required type="text" pattern="[0-9]*" class="form-control" name="code" id="code" placeholder="Code">
-                      </div>
-                      
-                      
-                      <br>
-                      <br>
-                      <button type="submit" class="btn btn-primary">Sumbit</button>
-                    </form>
+      </div>
+      <div class="card">
+        <div class="card-header" id="headingTwo">
+          <h5 class="mb-0">
+              <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                  Register
+              </button>
+          </h5>
+        </div>
+        <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#homeAccordion">
+          <div class="card-body">
+              <form role="form" id="reg_form" action="{% url 'main:home' %}" method="post" enctype="multipart/form-data">
+                  {% csrf_token %}
+                <div class="form-group">
+                  <label for="first_name">First Name:</label>
+                  <input required type="text" class="form-control" name = "first_name" id="first_name" aria-describedby="emailHelp" placeholder="First Name">
+                
+                  <label for="last_name">Last Name:</label>
+                  <input required type="text" class="form-control" name = "last_name" id="last_name" aria-describedby="emailHelp" placeholder="Last Name">
+                
+                  <!--<label for="SchoolCode">School Code:</label>-->
+                  <!--<input required type="text" class="form-control" name = "code" id="SchoolCode" placeholder="School Code">-->
+                   
+                  <label for="email">Email:</label>
+                  <input required type="email" class="form-control" name ="email" id="email" placeholder="Email">
+                   
+                  <!--<label for="Username">Username:</label>-->
+                  <!--<input required type="text" class="form-control" name = "username" id="username" placeholder="Username">-->
+                  
+                  <label for="pword">Password:</label>
+                  <input required type="password" class="form-control" name = "pword" id="pword" placeholder="Password">
+                  
+                  <label for="pword2">Confirm Password:</label>
+                  <input required type="password" class="form-control" name = "pword2" id="pword2" placeholder="Confirm Password" oninput="check(this)">
+                  <span id='message'></span>
+                  
                 </div>
+                <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                    <label class="btn btn-secondary">
+                        <input type="radio" name="role" id="instructor" value="instructor" class="sr-only" required onclick="instructorCode()"> Instructor
+                    </label>
+                    <label class="btn btn-secondary">
+                        <input type="radio" name="role" id="student" value="student" class="sr-only" required onclick="studentCode()"> Student
+                    </label>
+                </div>
+                
+                <div id = "code_form" class="form-group">
+                  <label id="code_label" for='code'>Code:</label>
+                  <input required type="text" pattern="[0-9]*" class="form-control" name="code" id="code" placeholder="Code">
+                </div>
+                      
+                      
+                <br>
+                <br>
+                <button type="submit" class="btn btn-primary">Sumbit</button>
+              </form>
             </div>
         </div>
-    </div>
+      </div>
+  </div>
 </div>
 
 {% endblock %}
